@@ -82,6 +82,7 @@ puts "-> Total events parsed:  #{filter.lines_analyzed}"
 
 if filter.issues_detected != 0
   puts "-> Total issues detected: #{filter.issues_detected}"
+  exit 2
 else
   puts "-> No issues detected"
 end
