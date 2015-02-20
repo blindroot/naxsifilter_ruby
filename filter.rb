@@ -96,8 +96,8 @@ end
 filter = Filter.new
 
 ARGF.each do | line |
-  paperTrailLogEntry = PaperTrailLogEntry.new(line)
-  filter.filter(paperTrailLogEntry)
+  paper_trail_log_entry = PaperTrailLogEntry.new(line)
+  filter.filter(paper_trail_log_entry)
   filter.lines_analyzed += 1
 end
 
