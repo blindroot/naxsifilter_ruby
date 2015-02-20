@@ -69,16 +69,20 @@ class Filter
     puts "[WARNING] Detected suspicious pattern in following URI:  #{event.uri}"
     puts "\t  PaperTrail log entry id: #{event.id}"
     puts "\t  Date reported: #{event.date}"
+    puts "\t  Full log entry: "
+    puts "\t  " + event.full_line
   end
 
 end
 
 class PaperTrailLogEntry
+  attr_accessor :full_line
   attr_accessor :id
   attr_accessor :date
   attr_accessor :uri
 
   def initialize(paper_trail_log_line)
+    self.full_line= paper_trail_log_line.to_s
     self.id= paper_trail_log_line.split[0]
     self.date= paper_trail_log_line.split[1]
     uri = paper_trail_log_line.match(/path=".*"/).to_s.split
