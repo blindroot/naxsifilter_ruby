@@ -52,37 +52,46 @@ class Filter
   end
 
 
-  def filter(event, paper_trail_metadata)
+  def filter(event)
 
     suspicious_entries = SuspiciousPatterns::ALL_PATTERNS.map { | patterns |
-      patterns.select { | _ , pattern | event.to_s.match(pattern) }.map  { |key, value| [key, value]}
+      patterns.select { | _ , pattern | event.uri.to_s.match(pattern) }.map  { |key, value| [key, value]}
     }.flatten(1)
 
     if suspicious_entries.any?
-      notify(event, paper_trail_metadata)
+      notify(event)
       self.issues_detected += 1
     end
 
   end
 
-  def notify(event, paper_trail_metadata)
-    puts "[WARNING] Detected suspicious pattern in following URI:  #{event}"
-    puts "\t  PaperTrail log entry id: #{paper_trail_metadata["logentry_id"]}"
-    puts "\t  Date reported: #{paper_trail_metadata["logentry_date"]}"
+  def notify(event)
+    puts "[WARNING] Detected suspicious pattern in following URI:  #{event.uri}"
+    puts "\t  PaperTrail log entry id: #{event.id}"
+    puts "\t  Date reported: #{event.date}"
   end
 
 end
 
+class PaperTrailLogEntry
+  attr_accessor :id
+  attr_accessor :date
+  attr_accessor :uri
 
+  def initialize(paper_trail_log_line)
+    self.id= paper_trail_log_line.split[0]
+    self.date= paper_trail_log_line.split[1]
+    uri = paper_trail_log_line.match(/path=".*"/).to_s.split
+    self.uri = uri[0].to_s.tr!("path=\"","")
+  end
+
+end
 
 filter = Filter.new
 
 ARGF.each do | line |
-  paper_trail_metadata = { "logentry_id" => line.split[0], "logentry_date" => line.split[1]}
-  uri_to_examine = line.match(/path=".*"/).to_s.split
-  uri_to_examine = uri_to_examine[0].to_s.tr!("path=\"","")
-
-  filter.filter(uri_to_examine, paper_trail_metadata)
+  paperTrailLogEntry = PaperTrailLogEntry.new(line)
+  filter.filter(paperTrailLogEntry)
   filter.lines_analyzed += 1
 end
 
