@@ -20,7 +20,7 @@ module SuspiciousPatterns
   }
   SQL_PATTERNS = {
       "sql keywords"  => /select|union|update|delete|insert|table|from|ascii|hex|unhex|drop/,
-#      "double quote" => /"/,
+      "double quote" => /"/,
       "possible hex encoding" => "0x",
       "mysql comment opening" => /\/\*/,
       "mysql comment ending"  => /\*\//,
@@ -52,29 +52,37 @@ class Filter
   end
 
 
-  def filter(event)
+  def filter(event, paper_trail_metadata)
 
     suspicious_entries = SuspiciousPatterns::ALL_PATTERNS.map { | patterns |
-      patterns.select { | _ , pattern | event.match(pattern) }.map  { |key, value| [key, value]}
+      patterns.select { | _ , pattern | event.to_s.match(pattern) }.map  { |key, value| [key, value]}
     }.flatten(1)
 
     if suspicious_entries.any?
-      notify(event)
+      notify(event, paper_trail_metadata)
       self.issues_detected += 1
     end
 
   end
 
-  def notify(event)
-    puts "[WARNING]  Detected suspicious pattern in:  #{event}"
+  def notify(event, paper_trail_metadata)
+    puts "[WARNING] Detected suspicious pattern in following URI:  #{event}"
+    puts "\t  PaperTrail log entry id: #{paper_trail_metadata["logentry_id"]}"
+    puts "\t  Date reported: #{paper_trail_metadata["logentry_date"]}"
   end
 
 end
 
+
+
 filter = Filter.new
 
 ARGF.each do | line |
-  filter.filter(line)
+  paper_trail_metadata = { "logentry_id" => line.split[0], "logentry_date" => line.split[1]}
+  uri_to_examine = line.match(/path=".*"/).to_s.split
+  uri_to_examine = uri_to_examine[0].to_s.tr!("path=\"","")
+
+  filter.filter(uri_to_examine, paper_trail_metadata)
   filter.lines_analyzed += 1
 end
 
