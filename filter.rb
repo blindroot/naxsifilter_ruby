@@ -86,7 +86,7 @@ class PaperTrailLogEntry
     self.id= paper_trail_log_line.split[0]
     self.date= paper_trail_log_line.split[1]
     uri = paper_trail_log_line.match(/path=".*"/).to_s.split
-    self.uri = uri[0].to_s.tr!("path=\"","")
+    self.uri = uri[0].to_s.tr!("path=","").to_s[1..-2]
   end
 
 end
