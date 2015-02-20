@@ -59,14 +59,16 @@ class Filter
     }.flatten(1)
 
     if suspicious_entries.any?
-      notify(event)
+      notify(event, suspicious_entries)
       self.issues_detected += 1
     end
 
   end
 
-  def notify(event)
+  def notify(event, suspicious_entries)
+    arr= suspicious_entries.flatten
     puts "[WARNING] Detected suspicious pattern in following URI:  #{event.uri}"
+    puts "\t  Patterns matching: " + arr.values_at(* arr.each_index.select {|i| i.even?}).join(", ")
     puts "\t  PaperTrail log entry id: #{event.id}"
     puts "\t  Date reported: #{event.date}"
     puts "\t  Full log entry: "
